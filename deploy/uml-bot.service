@@ -1,0 +1,44 @@
+# systemd unit (§2 — systemd, not PM2).
+# Install:
+#   sudo cp deploy/uml-bot.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now uml-bot
+# Logs:
+#   journalctl -u uml-bot -f
+
+[Unit]
+Description=UM League CODM Scrim Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=umlbot
+Group=umlbot
+WorkingDirectory=/opt/uml-bot
+EnvironmentFile=/opt/uml-bot/.env
+ExecStart=/home/umlbot/.bun/bin/bun run src/main.ts
+
+Restart=on-failure
+RestartSec=5
+# Stop restart-looping on a bad deploy instead of hammering the Discord gateway.
+StartLimitBurst=5
+StartLimitIntervalSec=120
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=uml-bot
+
+# The process needs its own data directory and nothing else on the filesystem.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/uml-bot/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryMax=768M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # --frozen-lockfile: CI fails on an out-of-date lockfile rather than silently
+      # resolving different versions than the ones that were tested locally.
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Test
+        run: bun test
+
+      # The leaderboard renderer needs these; without them Arabic and CJK team names
+      # render as empty boxes and nothing errors. Verified by the render test below.
+      - name: Install fonts for leaderboard rendering
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-core fonts-noto-cjk
+
+      - name: Verify leaderboard renders with non-Latin names
+        run: bun run src/leaderboard/render.smoke.ts
+
+  ocr-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ocr-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Contract tests
+        run: python -m unittest discover -p 'test_*.py' -v
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # §11: no credentials in the repo, ever.
+      - name: Guard against committed secrets
+        run: |
+          if git ls-files | grep -E '^(\.env($|\.)|credentials/)' ; then
+            echo "::error::Credential file is tracked in git."
+            exit 1
+          fi

@@ -1,0 +1,27 @@
+{
+  "name": "uml-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "UM League CODM scrim bot — Phase 1 (teams, rosters, match scheduling)",
+  "scripts": {
+    "start": "bun run src/main.ts",
+    "dev": "bun --watch run src/main.ts",
+    "deploy": "bun run src/deploy-commands.ts",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:studio": "bunx drizzle-kit studio",
+    "typecheck": "bunx tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.6",
+    "discord.js": "^14.16.3",
+    "drizzle-orm": "^0.45.2",
+    "gifenc": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.13",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^5.6.3"
+  }
+}

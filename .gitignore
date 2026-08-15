@@ -1,0 +1,15 @@
+# §11: credentials never enter the repo, not even "just for local dev".
+.env
+.env.*
+!.env.example
+credentials/
+*.pem
+*.key
+
+node_modules/
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+dist/
+.DS_Store
